@@ -82,6 +82,11 @@ def get_engine_args(db_url: str):
         if requires_ssl:
             connect_args["ssl"] = "require"
 
+        # Supabase Connection Pooler (Supavisor / PgBouncer) requires disabling statement cache in asyncpg
+        if "pooler.supabase.com" in host or parsed.port in (6543, 5432):
+            connect_args["statement_cache_size"] = 0
+            connect_args["prepared_statement_cache_size"] = 0
+
         # Strip sslmode/ssl query parameter from asyncpg URL to prevent TypeError in asyncpg.connect()
         import re
         cleaned_url = re.sub(r'([?&])sslmode=[^&]*(&)?', r'\1', cleaned_url)
