@@ -30,8 +30,9 @@ from app.api.payments import router as payments_router
 
 async def verify_encryption_keys():
     if settings.ENVIRONMENT == "production":
-        if not settings.TOKEN_ENCRYPTION_KEYS:
-            raise RuntimeError("CRITICAL: TOKEN_ENCRYPTION_KEYS missing in production. Halting startup.")
+        keys = settings.get_encryption_keys()
+        if not keys:
+            raise RuntimeError("CRITICAL: TOKEN_ENCRYPTION_KEY(S) missing in production. Halting startup.")
         try:
             # Test decryption of a known literal to verify Fernet initialization
             from app.core.encryption import decrypt_token, encrypt_token
