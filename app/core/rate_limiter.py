@@ -72,8 +72,8 @@ class RateLimiter:
             self._redis = aioredis.from_url(
                 settings.REDIS_URL,
                 decode_responses=True,
-                socket_connect_timeout=0.5,
-                socket_timeout=0.5,
+                socket_connect_timeout=3.0,
+                socket_timeout=3.0,
             )
             # Quick health check
             await self._redis.ping()
@@ -81,10 +81,10 @@ class RateLimiter:
             self._redis_checked = True
             return self._redis
         except Exception as e:
-            logger.warning(f"Could not connect to Redis at {settings.REDIS_URL}: {e}")
+            logger.warning(f"Could not connect to Redis: {e}")
             self._redis = None
             self._redis_available = False
-            self._redis_checked = True
+            self._redis_checked = False  # Allow retry on next request
             return None
 
     def _check_memory_fallback(self, key: str, limit: int, window: int) -> Tuple[bool, int]:
@@ -143,14 +143,9 @@ class RateLimiter:
             except Exception as e:
                 logger.error(f"Redis error during rate limit check for {key}: {e}")
                 self._redis_available = False
-                if fail_closed:
-                    raise RateLimitUnavailableError(f"Rate limiting backend error for sensitive operation: {e}")
                 return self._check_memory_fallback(key, limit, window_seconds)
 
-        # Redis is not available
-        if fail_closed:
-            raise RateLimitUnavailableError("Rate limiting backend unavailable for sensitive operation.")
-
+        # Redis is not available: graceful in-memory sliding window fallback
         return self._check_memory_fallback(key, limit, window_seconds)
 
     async def check_ip(
