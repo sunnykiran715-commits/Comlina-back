@@ -127,7 +127,8 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "https://app.comlina.ai",
         "https://comlina.ai",
-        "https://comlina.onrender.com"
+        "https://comlina.onrender.com",
+        "https://comlina.pages.dev"
     ]
 
     def get_encryption_keys(self) -> List[str]:

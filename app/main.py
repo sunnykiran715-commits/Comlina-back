@@ -76,6 +76,7 @@ cors_origins = [o for o in settings.CORS_ORIGINS if o and o != "*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=r"^https://[a-zA-Z0-9-]+\.comlina\.pages\.dev$",
     allow_credentials=getattr(settings, "CORS_ALLOW_CREDENTIALS", False),
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Workspace-ID", "x-request-id", "Accept"],
